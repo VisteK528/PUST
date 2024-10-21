@@ -19,9 +19,12 @@ Kk = 0.661505;
 Tk = 19.6;
 Tp = 0.5;
 [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
+% r2 = 0.1628;
+% r1 = -0.9998;
+% r0 = 0.8574;
 
 % General settings
-iterations = 600;
+iterations = 200;
 kstart = 12;
 
 
@@ -41,10 +44,10 @@ step3_value = ypp + 0.01;
 step4_value = ypp + 0.19;
 
 yzad(1:step1_time) = ypp;
-yzad(step1_time:step2_time) = step1_value;
-yzad(step2_time:step3_time) = step2_value;
-yzad(step3_time:step4_time) = step3_value;
-yzad(step4_time:iterations) = step4_value;
+yzad(step1_time:iterations) = step1_value;
+% yzad(step2_time:step3_time) = step2_value;
+% yzad(step3_time:step4_time) = step3_value;
+% yzad(step4_time:iterations) = step4_value;
 
 % Validation
 e_sum = 0;
