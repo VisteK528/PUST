@@ -27,6 +27,6 @@ function y = stepResponse(Upp, Ypp, du, n)
           Ukm11 = Upp;
       end
     
-      y(i) = symulacja_obiektu1y_p1(Ukm10,Ukm11,Ykm1,Ykm2);
+      y(i) = symulacja_obiektu11y_p1(Ukm10,Ukm11,Ykm1,Ykm2);
     end
 end
