@@ -1,13 +1,13 @@
 clear;
 
-D = 250;
-N = 50;
-Nu = 1;
-lambda = 0.1;
+D = 600;
+N = 45;
+Nu = 3;
+lambda = 3;
 start = 20;
-kend = 400;
+kend = 600;
 
-zad_value = 40;
+zad_value = 36;
 
 [y, u] = dmc(N, Nu, D, lambda, start, kend, zad_value, start);
 

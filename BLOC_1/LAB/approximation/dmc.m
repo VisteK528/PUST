@@ -1,15 +1,15 @@
 function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     Upp = 26;
-    du = 19;
-    du_min = -100;
-    du_max = 100;
+    du = 9;
+    du_min = -50;
+    du_max = 50;
     
     u_min = 0;
     u_max = 100;
 
     name = "data/zad2_step_value=" + string(Upp + du) + ".csv";
     raw_data = load(name);
-    Ypp = raw_data(1, 1);
+    Ypp = 33;
 
     % Process approximation
     [xopt, td] = approximation(Upp + du, Upp, raw_data);
@@ -19,6 +19,7 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
 
     % Step response normalized of approximated process
     s = stepResponseNormalized(Upp, Ypp, du, D, Kp, T1, T2, td);
+    [a, b] = calculate_coefficients(T1, T2, Kp);
     
     % Fill M matrix
     M = zeros(N, Nu);
@@ -52,10 +53,13 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     y_zad(1:set_time) = Ypp;
     y_zad(set_time:kend) = set_value;
     
+    error = 0;
+
+
     % Main loop
     for k=start:kend
         % Generate process output
-        y(k) = heating_station_simulation(Kp, T1, T2, u(k-td-1), u(k-td-2), y(k-1), y(k-2));
+        y(k) = heating_station_simulation(u(k-td-1), u(k-td-2), y(k-1), y(k-2), a, b);
 
         % Compute error
         ek = y_zad(k) - y(k);
@@ -85,5 +89,8 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
 
         % Delta u for time k
         deltauk_p(1) = u(k) - u(k-1);
+        error  = error + ek*ek;
     end
+
+    fprintf("DMC error: %f\r\n", error);
 end
