@@ -3,6 +3,8 @@ function [best_params, best_td] = approximation(step_value, working_point, raw_d
     K = 50;
     T1 = 2;
     T2 = 3;
+    
+    heater_temp = (heater_temp - ones(size(heater_temp))*heater_temp(1))/(step_value-working_point);
 
     best_error = inf;
     best_params = [];
@@ -10,12 +12,12 @@ function [best_params, best_td] = approximation(step_value, working_point, raw_d
     for td = 1:15
         x_pocz = [K, T1, T2];
         upper_constraint = [150 100 100];
-        bottom_constraint = [0.1 0.1 0.15];
+        bottom_constraint = [0.1 1.2 1];
     
-        xopt = fmincon(@(x_pocz) approx_goal_func(td, working_point, step_value, heater_temp, x_pocz(1), x_pocz(2), x_pocz(3)), ...
+        xopt = fmincon(@(x_pocz) approx_goal_func(td, 0, 1, heater_temp, x_pocz(1), x_pocz(2), x_pocz(3)), ...
                        x_pocz, [], [], [], [], bottom_constraint, upper_constraint);
     
-        error = approx_goal_func(td, working_point, step_value, heater_temp, xopt(1), xopt(2), xopt(3));
+        error = approx_goal_func(td, 0, 1, heater_temp, xopt(1), xopt(2), xopt(3));
         
     
         if(error <= best_error)

@@ -1,6 +1,6 @@
 function y = stepResponseNormalized(Upp, Ypp, du, D, K, T1, T2, td)
-    u = ones(D, 1) * (Upp + du);
-    y = ones(D, 1) * Ypp;
+    u = ones(D, 1) * 1;
+    y = ones(D, 1) * 0;
     [a, b] = calculate_coefficients(T1, T2, K);
     
     for k=2:D
@@ -31,5 +31,4 @@ function y = stepResponseNormalized(Upp, Ypp, du, D, K, T1, T2, td)
         y(k) = heating_station_simulation(uktdm1, uktdm2, ykm1, ykm2, a, b);
     end
 
-    y = (y - ones(D, 1) * Ypp) / du;
 end

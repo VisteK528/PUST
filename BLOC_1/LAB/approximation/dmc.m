@@ -1,6 +1,6 @@
 function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     Upp = 26;
-    du = 9;
+    du = 19;
     du_min = -50;
     du_max = 50;
     
@@ -9,7 +9,7 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
 
     name = "data/zad2_step_value=" + string(Upp + du) + ".csv";
     raw_data = load(name);
-    Ypp = 33;
+    Ypp = raw_data(1);
 
     % Process approximation
     [xopt, td] = approximation(Upp + du, Upp, raw_data);
@@ -18,7 +18,7 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     T2 = xopt(3);
 
     % Step response normalized of approximated process
-    s = stepResponseNormalized(Upp, Ypp, du, D, Kp, T1, T2, td);
+    s = stepResponseNormalized(0, 0, 0, D, Kp, T1, T2, td);
     [a, b] = calculate_coefficients(T1, T2, Kp);
     
     % Fill M matrix
@@ -58,8 +58,31 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
 
     % Main loop
     for k=start:kend
-        % Generate process output
-        y(k) = heating_station_simulation(u(k-td-1), u(k-td-2), y(k-1), y(k-2), a, b);
+        if(k - td - 1 < 1)
+            uktdm1 = Upp;
+        else
+            uktdm1 = u(k - td - 1);
+        end
+        
+        if(k - td - 2 < 1)
+            uktdm2 = Upp;
+        else
+            uktdm2 = u(k - td - 2);
+        end
+        
+        if(k - 1 < 1)
+            ykm1 = Ypp;
+        else
+            ykm1 = y(k-1);
+        end
+        
+        if(k - 2 < 1)
+            ykm2 = Ypp;
+        else
+            ykm2 = y(k-2);
+        end
+        
+        y(k) = Ypp + heating_station_simulation(uktdm1 - Upp, uktdm2 - Upp, ykm1 - Ypp, ykm2 - Ypp, a, b);
 
         % Compute error
         ek = y_zad(k) - y(k);

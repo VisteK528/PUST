@@ -1,15 +1,18 @@
 clear all;
 
 working_point = 26;
-step_value = 60;
+step_value = 35;
 
 name = "data/zad2_step_value=" + string(step_value) + ".csv";
 raw_data = load(name);
 [xopt, td] = approximation(step_value, working_point, raw_data);
 
+working_point = 0;
+step_value = 1;
+
 
 heater_temp = raw_data(1:500, 1);
-environment_temp = raw_data(1:500, 2);
+heater_temp = (heater_temp - ones(size(heater_temp))*heater_temp(1))/(35-26);
 
 K = xopt(1);
 T1 = xopt(2);
@@ -21,7 +24,7 @@ y = ones(N, 1) * heater_temp(1);
 [a, b] = calculate_coefficients(T1, T2, K);
 
 error = 0;
-for k=2:N
+for k=1:N
     if(k - td - 1 < 1)
         uktdm1 = working_point;
     else

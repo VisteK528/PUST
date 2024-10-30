@@ -13,13 +13,18 @@ raw_data = load(name);
 Ypp = raw_data(1, 1);
 
 % Process approximation
-[xopt, td] = approximation(Upp + du, Upp, raw_data);
+[xopt, td] = approximation2(Upp + du, Upp, raw_data);
+% td = 1;
+% K = 0.735047;
+% T1 = 11.604024;
+% T2=83.947848;
 K = xopt(1);
 T1 = xopt(2);
 T2 = xopt(3);
 
 % Step response normalized of approximated process
 s = stepResponseNormalized(Upp, Ypp, du, D, K, T1, T2, td);
+[a, b] = calculate_coefficients(T1, T2, K);
 
 
 heater_temp = raw_data(:, 1);
@@ -53,7 +58,7 @@ for k=2:N
         ykm2 = y(k-2);
     end
 
-    y(k) = heating_station_simulation(K, T1, T2, uktdm1, uktdm2, ykm1, ykm2);
+    y(k) = heating_station_simulation(uktdm1, uktdm2, ykm1, ykm2, a, b);
     error = error + (y(k) - heater_temp(k))^2;
 end
 
@@ -61,6 +66,6 @@ figure;
 stairs(y);
 hold on;
 stairs(heater_temp);
-hold on;
-scatter(1:D, s);
+%hold on;
+%scatter(1:D, s);
 legend("Approximated", "Measured")
