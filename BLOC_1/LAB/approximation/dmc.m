@@ -1,8 +1,8 @@
 function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     Upp = 26;
     du = 19;
-    du_min = -50;
-    du_max = 50;
+    du_min = -70;
+    du_max = 70;
     
     u_min = 0;
     u_max = 100;
@@ -52,6 +52,7 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     
     y_zad(1:set_time) = Ypp;
     y_zad(set_time:kend) = set_value;
+    y_zad(set_time+200:end) = 42;
     
     error = 0;
 

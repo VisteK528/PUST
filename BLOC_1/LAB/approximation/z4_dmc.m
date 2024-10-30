@@ -4,9 +4,9 @@ set(0, 'DefaultLineLineWidth',1);
 set(0, 'DefaultStairLineWidth',1);
 
 D = 600;
-N = 600;
-Nu = 600;
-lambda = 1;
+N = 50;
+Nu = 6;
+lambda = 0.01;
 kend = 600;
 start = 20;
 zad_value = 35;
@@ -14,7 +14,9 @@ zad_value = 35;
 [y, u] = dmc(N, Nu, D, lambda, start, kend, zad_value, start);
 len = length(y);
 yzad = ones(kend, 1) * zad_value;
-yzad(start:end) = zad_value;
+
+yzad(start:kend) = zad_value;
+yzad(start+200:end) = 42;
 
 % Plot graphs
 set(0, 'defaulttextinterpreter','latex');
