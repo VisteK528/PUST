@@ -16,6 +16,8 @@ K = 0.892852;
 T1 = 1.000002;
 T2 = 85.439497;
 
+[a, b] = calculate_coefficients(T1, T2, K);
+
 % Digital PID parameters
 % Kk - critical gain
 % Tk - critical period
@@ -86,7 +88,7 @@ for k=kstart:iterations
         ykm2 = y(k-2);
     end
     
-    y(k) = heating_station_simulation(K, T1, T2, uktdm1, uktdm2, ykm1, ykm2);
+    y(k) = heating_station_simulation(uktdm1, uktdm2, ykm1, ykm2, a, b);
     
     % Compute error
     e(k) = yzad(k) - y(k);
