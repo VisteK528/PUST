@@ -1,21 +1,26 @@
+clear all;
+D = 600;
+N = 200;
+Nu = 3;
+lambda = 0.1;
+kend = 600;
+start = 20;
+set_value = 40;
+
 % Initialize communication with the heating station
 addpath('D:\SerialCommunication'); 
 initSerialControl COM7 
 
-% File name to acquired data
-test_number = 1;
-name = "dmc_data/DMC_object_" + string(test_number) + ".csv";
-
 Upp = 26;
 du = 19;
-du_min = -70;
-du_max = 70;
+du_min = -100;
+du_max = 100;
 
 u_min = 0;
 u_max = 100;
 
-name = "data/zad2_step_value=" + string(Upp + du) + ".csv";
-raw_data = load(name);
+name = "data\zad2_step_value=" + string(Upp + du) + ".csv";
+raw_data = csvread(name);
 Ypp = raw_data(1);
 
 % Process approximation
@@ -54,14 +59,25 @@ Ke = sum(K(1, :));
 
 % Variables initialization
 y = ones(kend, 1) * Ypp;
+y_simulation = ones(kend, 1) * Ypp;
 u = ones(kend, 1) * Upp;
 deltauk_p = zeros(D-1, 1);
 
-y_zad(1:set_time) = Ypp;
-y_zad(set_time:kend) = set_value;
-y_zad(set_time+200:end) = 42;
+% Set trajectory
+step1_time = 30;
+step2_time = 350;
 
-error = 0;
+step1_value = 37;
+step2_value = 37;
+
+
+y_zad(1:step1_time) = Ypp;
+y_zad(step1_time:kend) = step1_value;
+% y_zad(step2_time:end) = step2_value;
+
+% File name to acquired data
+test_number = 4;
+name = "dmc_data/DMC_object_" + string(test_number) + ".csv";
 
 % Preparing files
 file_id = fopen(name, 'a');
@@ -74,9 +90,9 @@ buffer_index = 1;
 % Make window with plots
 figure;
 hold on;
-h_u = stairs(1:kstart, u(1:kstart), 'DisplayName', 'u');
-h_y = stairs(1:kstart, y(1:kstart), 'DisplayName', 'y');
-h_y_sim = stairs(1:kstart, y_simulation(1:kstart), 'DisplayName', 'y\_simulation');
+h_y = stairs(1:start, y(1:start), 'DisplayName', 'y');
+h_y_sim = stairs(1:start, y_simulation(1:start), 'DisplayName', 'y\_simulation');
+h_y_zad = stairs(1:start, y_zad(1:start), 'DisplayName', 'y\_zad');
 hold off;
 
 title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
@@ -85,6 +101,19 @@ ylabel("Wartości");
 legend;
 grid on;
 
+
+figure;
+hold on;
+h_u = stairs(1:start, u(1:start), 'DisplayName', 'u');
+hold off;
+
+title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
+xlabel("Iteracje [k]");
+ylabel("Wartości");
+legend;
+grid on;
+
+error = 0;
 % Main loop
 for k=start:kend
     if(k - td - 1 < 1)
@@ -111,7 +140,8 @@ for k=start:kend
         ykm2 = y(k-2);
     end
     
-    y(k) = Ypp + heating_station_simulation(uktdm1 - Upp, uktdm2 - Upp, ykm1 - Ypp, ykm2 - Ypp, a, b);
+    y(k) = readMeasurements(1);
+    y_simulation(k) = Ypp + heating_station_simulation(uktdm1 - Upp, uktdm2 - Upp, ykm1 - Ypp, ykm2 - Ypp, a, b);
     
     % Compute error
     ek = y_zad(k) - y(k);
@@ -159,11 +189,12 @@ for k=start:kend
     set(h_u, 'XData', 1:k, 'YData', u(1:k));
     set(h_y, 'XData', 1:k, 'YData', y(1:k));
     set(h_y_sim, 'XData', 1:k, 'YData', y_simulation(1:k));
+    set(h_y_zad, 'XData', 1:k, 'YData', y_zad(1:k));
     drawnow;
 
     waitForNewIteration();
 end
-fclose(fileId);
+fclose(file_id);
 sendControls([1, 5], [50, 26]);
 
 fprintf("DMC error: %f\r\n", error);

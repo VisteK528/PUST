@@ -5,12 +5,12 @@ addpath('D:\SerialCommunication');
 initSerialControl COM7 
 
 % File name to acquired data
-test_number = 1;
+test_number = 4;
 name = "data/PID_object_" + string(test_number) + ".csv";
 
 % Process constants
-du_min = -20;
-du_max = 20;
+du_min = -100;
+du_max = 100;
 
 u_min = 0;
 u_max = 100;
@@ -19,10 +19,10 @@ upp = 26;
 ypp = 33.18;
 
 % Model coefficients
-td = 2;
-K = 0.892852;
-T1 = 1.000002;
-T2 = 85.439497;
+[xopt, td] = approximation(Upp + du, Upp, raw_data);
+Kp = xopt(1);
+T1 = xopt(2);
+T2 = xopt(3);
 
 [a, b] = calculate_coefficients(T1, T2, K);
 
@@ -32,8 +32,8 @@ T2 = 85.439497;
 % Tp - sampling period
 Tp = 1;
 
-Kk = 49.48;
-Tk = 13;
+Kk = 30;
+Tk = 80;
 
 [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
 
@@ -51,39 +51,47 @@ y_simulation = ones(1, iterations) * ypp;
 e = zeros(1, iterations);
 
 % Set trajectory
-step1_time = 20;
-step2_time = 150;
-step3_time = 300;
-step4_time = 450;
+step1_time = 30;
+step2_time = 350;
 
-step1_value = 40;
-step2_value = 45;
-step3_value = 60;
-step4_value = 50;
+step1_value = 42;
+step2_value = 37;
+
 
 yzad(1:step1_time) = ypp;
 yzad(step1_time:iterations) = step1_value;
-yzad(step2_time:step3_time) = step2_value;
-yzad(step3_time:step4_time) = step3_value;
-yzad(step4_time:iterations) = step4_value;
+yzad(step2_time:end) = step2_value;
+
 
 % Validation
 e_sum = 0;
 
 % Preparing files
 file_id = fopen(name, 'a');
-fprintf(file_id, "u(k), y(k), y_simulation(k)\n");
+fprintf(file_id, "u(k), yzad(k), y(k), y_simulation(k)\n");
 
 buffer_size = 15;
-buffer = zeros(buffer_size, 3);
+buffer = zeros(buffer_size, 4);
 buffer_index = 1;
 
 % Make window with plots
 figure;
 hold on;
-h_u = stairs(1:kstart, u(1:kstart), 'DisplayName', 'u');
 h_y = stairs(1:kstart, y(1:kstart), 'DisplayName', 'y');
 h_y_sim = stairs(1:kstart, y_simulation(1:kstart), 'DisplayName', 'y\_simulation');
+h_y_zad = stairs(1:kstart, yzad(1:kstart), 'DisplayName', 'y\_zad');
+hold off;
+
+title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
+xlabel("Iteracje [k]");
+ylabel("Wartości");
+legend;
+grid on;
+
+
+figure;
+hold on;
+h_u = stairs(1:kstart, u(1:kstart), 'DisplayName', 'u');
 hold off;
 
 title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
@@ -120,7 +128,7 @@ for k=kstart:iterations
     end
 
     y(k) = readMeasurements(1);
-    y_simulation(k) = heating_station_simulation(uktdm1, uktdm2, ykm1, ykm2, a, b);
+    y_simulation(k) = ypp + heating_station_simulation(uktdm1 - upp, uktdm2 - upp, ykm1 - ypp, ykm2 - ypp, a, b);
     
     % Compute error
     e(k) = yzad(k) - y(k);
@@ -149,12 +157,12 @@ for k=kstart:iterations
     sendControls([1, 5], [50, u(k)]);
 
     % Add data to buffer
-    buffer(buffer_index, :) = [u(k), y(k), y_simulation(k)];
+    buffer(buffer_index, :) = [u(k), yzad(k), y(k), y_simulation(k)];
     buffer_index = buffer_index + 1;
 
     % Write data to file
     if buffer_index > buffer_size
-        fprintf(file_id, '%f, %f, %f\n', buffer');
+        fprintf(file_id, '%f, %f, %f, %f\n', buffer');
         buffer_index = 1;
     end
 
@@ -162,13 +170,14 @@ for k=kstart:iterations
     set(h_u, 'XData', 1:k, 'YData', u(1:k));
     set(h_y, 'XData', 1:k, 'YData', y(1:k));
     set(h_y_sim, 'XData', 1:k, 'YData', y_simulation(1:k));
+    set(h_y_zad, 'XData', 1:k, 'YData', yzad(1:k));
     drawnow;
 
     waitForNewIteration();
 
 end
 
-fclose(fileId);
+fclose(file_id);
 sendControls([1, 5], [50, 26]);
 
 fprintf("Error sum: %02f \r\n", e_sum);
