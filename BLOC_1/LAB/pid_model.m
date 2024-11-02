@@ -23,9 +23,9 @@ Tp = 1; % sampling period
 Kk = 49.48; %critical gain
 Tk = 13; % critical period
 
-% [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
+[r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
 
-[r2, r1, r0] = discrete_pid_parameters_tuning(Kp, inf, 0, Tp);
+% [r2, r1, r0] = discrete_pid_parameters_tuning(Kp, inf, 0, Tp);
 
 
 % General settings
