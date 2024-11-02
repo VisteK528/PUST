@@ -1,4 +1,4 @@
-function [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, T)
+function [r2, r1, r0] = discretePidParameters(Kk, Tk, T)
 % KK - critical gain
 % Tk - critical oscillations [s]
 % T - sample time [s]

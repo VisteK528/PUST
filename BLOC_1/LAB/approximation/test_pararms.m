@@ -54,4 +54,4 @@ figure;
 stairs(y);
 hold on;
 stairs(heater_temp);
-legend("Approximated", "Measured")
+legend("Approximated", "Measured");

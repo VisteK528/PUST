@@ -1,25 +1,32 @@
-function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
-    Upp = 26;
-    du = 9;
-    du_min = -100;
-    du_max = 100;
+function [y, u, e_sum] = simulateDMC(N, Nu, D, lambda, step1_value, step2_value, ...
+    step3_value, step4_value)
+    Upp = 0.8;
+    Ypp = 5;
+    du_min = -5e-02;
+    du_max = 5e-02;
     
-    u_min = 0;
-    u_max = 100;
+    u_min = 6e-01;
+    u_max = 1e+00;
 
-    name = "data/zad2_step_value=" + string(Upp + du) + ".csv";
-    raw_data = load(name);
-    Ypp = raw_data(1, 1);
+    start = 10;
+    kend = 800;
 
-    % Process approximation
-    [xopt, td] = approximation(Upp + du, Upp, raw_data);
-    Kp = xopt(1);
-    T1 = xopt(2);
-    T2 = xopt(3);
+    % Set trajectory
+    step1_time = 10;
+    step2_time = 200;
+    step3_time = 400;
+    step4_time = 600;
+    
+    yzad(1:step1_time) = Ypp;
+    yzad(step1_time:step2_time) = Ypp + step1_value;
+    yzad(step2_time:step3_time) = Ypp + step2_value;
+    yzad(step3_time:step4_time) = Ypp + step3_value;
+    yzad(step4_time:kend) = Ypp + step4_value;
 
-    % Step response normalized of approximated process
-    s = stepResponseNormalized(Upp, Ypp, du, D, Kp, T1, T2, td);
-
+    % Step response
+    s = stepResponseNormalized(Upp, Ypp, 0.05, D+1);
+    s = s(2:end);
+    
     % Fill M matrix
     M = zeros(N, Nu);
     for i=1:Nu
@@ -48,17 +55,37 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     y = ones(kend, 1) * Ypp;
     u = ones(kend, 1) * Upp;
     deltauk_p = zeros(D-1, 1);
-    
-    y_zad(1:set_time) = Ypp;
-    y_zad(set_time:kend) = set_value;
+
+    e_sum = 0;
     
     % Main loop
     for k=start:kend
-        % Generate process output
-        y(k) = heating_station_simulation(Kp, T1, T2, u(k-td-1), u(k-td-2), y(k-1), y(k-2));
+        if k >= 2
+          Ykm1 = y(k-1);
+        else
+          Ykm1 = Ypp;
+        end
+        if k >= 3
+          Ykm2 = y(k-2);
+        else
+          Ykm2 = Ypp;
+        end
+        if k >= 11
+          Ukm10 = u(k-10);
+        else
+          Ukm10 = Upp;
+        end
+        if k >= 12
+          Ukm11 = u(k-11);
+        else
+          Ukm11 = Upp;
+        end
+        
+        y(k) = symulacja_obiektu11y_p1(Ukm10,Ukm11,Ykm1,Ykm2);
 
         % Compute error
-        ek = y_zad(k) - y(k);
+        ek = yzad(k) - y(k);
+        e_sum = e_sum + ek^2;
 
         % Compute deltau variable for given control horizon
         deltauk = Ke*ek-Ku*deltauk_p;
@@ -66,8 +93,8 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
         % Back deltau window
         for n=D-1:-1:2
             deltauk_p(n) = deltauk_p(n-1);
-        end  
-
+        end
+        
         if(deltauk < du_min)
             deltauk = du_min;
         elseif(deltauk > du_max)

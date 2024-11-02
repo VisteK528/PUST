@@ -1,13 +1,22 @@
-Upp = 0.5;
-Ypp = 4;
+clear;
+
+Upp = 0.8;
+Ypp = 5;
 du = 0.05;
-n = 100;
+n = 150;
 
-y = stepResponse(Upp, Ypp, du, n);
+u = ones(1, n);
+y_norm = stepResponseNormalized(Upp, Ypp, du, n);
 
-y_norm = (y - Ypp) / du;
-
+% Plot
+figure;
 plot(y_norm);
+hold on;
+plot(u, '--');
 title("Odpowiedź na skok jednostkowy");
 xlabel("k");
-ylabel("y(k)");
+ylabel("y(k) / u(k)");
+
+% Save to file
+name = "plot_data/z3_skok.txt";
+writematrix([u; y_norm]', name);

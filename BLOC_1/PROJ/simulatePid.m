@@ -1,4 +1,4 @@
-function e = simulate_pid(x)
+function [y, u, e_sum] = simulatePid(x, step1_value, step2_value, step3_value, step4_value)
     r2 = x(1);
     r1 = x(2);
     r0 = x(3);
@@ -6,28 +6,12 @@ function e = simulate_pid(x)
     % Process constants
     du_min = -5e-02;
     du_max = 5e-02;
-    
     u_min = 6e-01;
-    u_max = 1e+00;
-    
+    u_max = 1e+00; 
     upp = 8e-01;
     ypp = 5e+00;
-    
-    % Digital PID parameters
-    % Kk - critical gain
-    % Tk - critical period
-    % Tp - sampling period
-    
-    Kk = 0.661505;
-    Tk = 19.6;
-    Tp = 0.5;
-    [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
-    % r2 = 0.1628;
-    % r1 = -0.9998;
-    % r0 = 0.8574;
-    
-    % General settings
-    iterations = 200;
+
+    iterations = 800;
     
     u = ones(1, iterations) * upp;
     y = ones(1, iterations) * ypp;
@@ -35,51 +19,43 @@ function e = simulate_pid(x)
     
     % Set trajectory
     step1_time = 10;
-    step2_time = 150;
-    step3_time = 300;
-    step4_time = 450;
-    
-    step1_value = ypp + 0.05;
-    step2_value = ypp + 0.15;
-    step3_value = ypp + 0.01;
-    step4_value = ypp + 0.19;
+    step2_time = 200;
+    step3_time = 400;
+    step4_time = 600;
     
     yzad(1:step1_time) = ypp;
-    yzad(step1_time:iterations) = step1_value;
-    % yzad(step2_time:step3_time) = step2_value;
-    % yzad(step3_time:step4_time) = step3_value;
-    % yzad(step4_time:iterations) = step4_value;
+    yzad(step1_time:step2_time) = ypp + step1_value;
+    yzad(step2_time:step3_time) = ypp + step2_value;
+    yzad(step3_time:step4_time) = ypp + step3_value;
+    yzad(step4_time:iterations) = ypp + step4_value;
     
     % Validation
     e_sum = 0;
     
-    
     % Main loop
-    for k=1:iterations
-    
-        % Generate process output
+    for k=step1_time:iterations
         if k >= 2
-              Ykm1 = y(k-1);
+          Ykm1 = y(k-1);
         else
-          Ykm1 = Ypp;
+          Ykm1 = ypp;
         end
         
         if k >= 3
           Ykm2 = y(k-2);
         else
-          Ykm2 = Ypp;
+          Ykm2 = ypp;
         end
         
         if k >= 11
           Ukm10 = u(k-10);
         else
-          Ukm10 = Upp;
+          Ukm10 = upp;
         end
         
         if k >= 12
           Ukm11 = u(k-11);
         else
-          Ukm11 = Upp;
+          Ukm11 = upp;
         end
         
         y(k) = symulacja_obiektu11y_p1(Ukm10,Ukm11,Ykm1,Ykm2);
@@ -93,7 +69,6 @@ function e = simulate_pid(x)
     
         % Constrains on speed and value
         du = u(k) - u(k-1);
-    
         if(du < du_min)
             du = du_min;
         elseif(du > du_max)
@@ -107,9 +82,5 @@ function e = simulate_pid(x)
         elseif(u(k) > u_max)
             u(k) = u_max;
         end
-    
     end
-    len = length(y);
-    e = e_sum;
-
 end

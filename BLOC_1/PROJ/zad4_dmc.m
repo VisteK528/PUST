@@ -1,85 +1,80 @@
-function [y, u] = zad4_dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
-    Upp = 0.8;
-    Ypp = 5;
-    du = 0.15   ;
-    du_min = -5e-02;
-    du_max = 5e-02;
-    
-    u_min = 6e-01;
-    u_max = 1e+00;
+clear;
+set(0, 'defaulttextinterpreter','latex');
+set(0, 'DefaultLineLineWidth',1);
+set(0, 'DefaultStairLineWidth',1);
 
-    s = stepResponseNormalized(Upp, Ypp, du, D+1);
-    s = s(2:end);
-    
-    % Fill M matrix
-    M = zeros(N, Nu);
-    for i=1:Nu
-        M(i:end,i)=s(1:N-i + 1);
-    end
-    
-    % Fill MP matrix
-    MP = zeros(N, D-1);
-    for i = 1:N
-        for j = 1:D-1
-            if i+j <= D    
-                MP(i, j) = s(i+j) - s(j);
-            else
-                MP(i, j) = s(D) - s(j);
-            end
-        end
-    end
-    
-    % Regulator parameters
-    I = eye(Nu);
-    K = ((M'*M+lambda*I)^(-1))*M';
-    Ku = K(1,:)*MP;
-    Ke = sum(K(1, :));
-    
-    % Variables initialization
-    y = ones(kend, 1) * Ypp;
-    u = ones(kend, 1) * Upp;
-    deltauk_p = zeros(D-1, 1);
-    
-    y_zad(1:set_time) = Ypp;
-    y_zad(set_time:kend) = set_value;
-    
-    % Main loop
-    for k=start:kend
-        % Generate process output
-        y(k) = symulacja_obiektu11y_p1(u(k-10), u(k-11), y(k-1), y(k-2));
+Ypp = 5;
 
-        % Compute error
-        ek = y_zad(k) - y(k);
+D = 150;
+N = 30;
+Nu = 3;
+lambda = 0.0116;
+start = 10;
+kend = 800;
 
-        % Compute deltau variable for given control horizon
-        deltauk = Ke*ek-Ku*deltauk_p;
-        
-        % Back deltau window
-        for n=D-1:-1:2
-            deltauk_p(n) = deltauk_p(n-1);
-        end
-        
-        
+% Set trajectory
+step1_value = 0.05;
+step2_value = -0.05;
+step3_value = 0.12;
+step4_value = 0.19;
 
-        if(deltauk < du_min)
-            deltauk = du_min;
-        elseif(deltauk > du_max)
-            deltauk = du_max;
-        end
+[y, u, e_sum] = simulateDMC(N, Nu, D, lambda, step1_value, step2_value, step3_value, step4_value);
 
-        % Manipulate variable for time k
-        u(k) = u(k-1) + deltauk;
+len = length(y);
 
+step1_time = 10;
+step2_time = 200;
+step3_time = 400;
+step4_time = 600;
 
-        if(u(k) < u_min)
-            u(k) = u_min;
-        elseif(u(k) > u_max)
-            u(k) = u_max;
-        end
+yzad(1:step1_time) = Ypp;
+yzad(step1_time:step2_time) = Ypp + step1_value;
+yzad(step2_time:step3_time) = Ypp + step2_value;
+yzad(step3_time:step4_time) = Ypp + step3_value;
+yzad(step4_time:kend) = Ypp + step4_value;
 
-        % Delta u for time k
-        deltauk_p(1) = u(k) - u(k-1);
-    
-        
-    end
-end
+fprintf("Error sum: %02f \r\n", e_sum);
+
+% Plot graphs
+set(0, 'defaulttextinterpreter','latex');
+set(0, 'DefaultLineLineWidth',1);
+set(0, 'DefaultStairLineWidth',1);
+resolution_dpi = 300;
+export_pictures = true;
+
+figure;
+stairs(1:len, y);
+hold on;
+stairs(1:len, yzad, '--');
+
+x0=10;
+y0=10;
+width=1280;
+height=720;
+set(gcf,'position',[x0,y0,width,height]);
+grid(gca,'minor');
+title('');
+
+legend("$y(k)$", "$y_{zad}(k)$", 'fontsize', 12, 'Interpreter','latex');
+xlabel('$k$', 'fontsize', 14, 'Interpreter','latex');
+ylabel('$y$', 'fontsize', 14, 'Interpreter','latex');
+
+figure;
+stairs(1:len, u);
+
+x0=10;
+y0=10;
+width=1280;
+height=720;
+set(gcf,'position',[x0,y0,width,height]);
+grid(gca,'minor');
+title('');
+
+xlabel('$k$', 'fontsize', 14, 'Interpreter','latex');
+ylabel('$u$', 'fontsize', 14, 'Interpreter','latex');
+
+% Save to file
+name1 = "plot_data/z6_dmc_u.txt";
+writematrix(u, name1);
+name2 = "plot_data/z6_dmc_y.txt";
+writematrix([yzad; y']', name2);
