@@ -1,4 +1,4 @@
-function y = stepResponseNormalized(Upp, Ypp, du, D, K, T1, T2, td)
+function y = step_response(Upp, Ypp, D, K, T1, T2, td)
     u = ones(D, 1) * 1;
     y = ones(D, 1) * 0;
     [a, b] = calculate_coefficients(T1, T2, K);

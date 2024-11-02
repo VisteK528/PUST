@@ -19,23 +19,18 @@ T2 = 85.439497;
 [a, b] = calculate_coefficients(T1, T2, K);
 
 % Digital PID parameters
-% Kk - critical gain
-% Tk - critical period
-% Tp - sampling period
-Tp = 1;
+Tp = 1; % sampling period
+Kk = 49.48; %critical gain
+Tk = 13; % critical period
 
-Kk = 49.48;
-Tk = 13;
+% [r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
 
-[r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
-
-% [r2, r1, r0] = discrete_pid_parameters_tuning(Kp, inf, 0, Tp);
+[r2, r1, r0] = discrete_pid_parameters_tuning(Kp, inf, 0, Tp);
 
 
 % General settings
 iterations = 600;
 kstart = 12;
-
 
 u = ones(1, iterations) * upp;
 y = ones(1, iterations) * ypp;

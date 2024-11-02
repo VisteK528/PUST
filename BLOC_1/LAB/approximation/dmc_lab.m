@@ -30,7 +30,7 @@ T1 = xopt(2);
 T2 = xopt(3);
 
 % Step response normalized of approximated process
-s = stepResponseNormalized(0, 0, 0, D, Kp, T1, T2, td);
+s = step_response(0, 0, D, Kp, T1, T2, td);
 [a, b] = calculate_coefficients(T1, T2, Kp);
 
 % Fill M matrix
