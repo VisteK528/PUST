@@ -18,12 +18,9 @@ heater_temp = raw_data(:, 1);
 heater_temp_normalized = (heater_temp - ones(size(heater_temp))* ...
     heater_temp(1))/(step_value - working_point);
 
-working_point_normalized = 0;
-step_value_normalized = 1;
 
 % Step response normalized of approximated process
-s = step_response(working_point_normalized, heater_temp_normalized(1), ...
-    D, K, T1, T2, td);
+s = step_response(0, 0, D, K, T1, T2, td);
 
 figure;
 hold on;

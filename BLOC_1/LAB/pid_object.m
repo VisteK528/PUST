@@ -11,9 +11,8 @@ step_value = 35;
 name = "data/zad2_step_value=" + string(step_value) + ".csv";
 raw_data = load(name);
 
-heater_temp = raw_data(1:500, 1);
-heater_temp_normalized = (heater_temp - ones(size(heater_temp))* ...
-    heater_temp(1))/(step_value - working_point);
+Ypp = raw_data(1, 1);
+Upp = working_point;
 
 [xopt, td] = approximation(step_value, working_point, raw_data);
 K = xopt(1);
@@ -34,8 +33,6 @@ du_max = 20;
 u_min = 0;
 u_max = 100;
 
-Upp = working_point;
-Ypp = heater_temp(1);
 
 % Digital PID parameters
 Tp = 1;         % sampling period
@@ -46,17 +43,6 @@ Tk = 80;        % critical period
 [r2, r1, r0] = discrete_pid_parameters_ziegler_nichols(Kk, Tk, Tp);
 
 % [r2, r1, r0] = discrete_pid_parameters(Kp, inf, 0, Tp);
-
-
-% General settings
-iterations = 600;
-kstart = 12;
-
-
-u = ones(1, iterations) * Upp;
-y = ones(1, iterations) * Ypp;
-y_simulation = ones(1, iterations) * Ypp;
-e = zeros(1, iterations);
 
 % Set trajectory
 step1_time = 30;
@@ -70,6 +56,14 @@ yzad(1:step1_time) = Ypp;
 yzad(step1_time:iterations) = step1_value;
 yzad(step2_time:end) = step2_value;
 
+% General settings
+iterations = 600;
+kstart = 12;
+
+u = ones(1, iterations) * Upp;
+y = ones(1, iterations) * Ypp;
+y_simulation = ones(1, iterations) * Ypp;
+e = zeros(1, iterations);
 
 % Validation
 e_sum = 0;

@@ -1,24 +1,27 @@
-function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
-    Upp = 26;
-    du = 19;
+function [y, u] = dmc(N, Nu, D, lambda, start, iterations, set_value, set_time)
+    
+    working_point = 26;
+    step_value = 35;
+
     du_min = -70;
     du_max = 70;
     
     u_min = 0;
     u_max = 100;
 
-    name = "data/zad2_step_value=" + string(Upp + du) + ".csv";
+    name = "data/zad2_step_value=" + string(step_value) + ".csv";
     raw_data = load(name);
     Ypp = raw_data(1);
+    Upp = working_point;
 
     % Process approximation
-    [xopt, td] = approximation(Upp + du, Upp, raw_data);
+    [xopt, td] = approximation(step_value, Upp, raw_data);
     Kp = xopt(1);
     T1 = xopt(2);
     T2 = xopt(3);
 
     % Step response normalized of approximated process
-    s = step_response(0, 0, 0, D, Kp, T1, T2, td);
+    s = step_response(0, 0, D, Kp, T1, T2, td);
     [a, b] = calculate_coefficients(T1, T2, Kp);
     
     % Fill M matrix
@@ -46,19 +49,18 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
     Ke = sum(K(1, :));
     
     % Variables initialization
-    y = ones(kend, 1) * Ypp;
-    u = ones(kend, 1) * Upp;
+    y = ones(iterations, 1) * Ypp;
+    u = ones(iterations, 1) * Upp;
     deltauk_p = zeros(D-1, 1);
     
     y_zad(1:set_time) = Ypp;
-    y_zad(set_time:kend) = set_value;
-    y_zad(set_time+200:end) = 42;
+    y_zad(set_time:iterations) = set_value;
     
     error = 0;
 
 
     % Main loop
-    for k=start:kend
+    for k=start:iterations
         if(k - td - 1 < 1)
             uktdm1 = Upp;
         else
@@ -83,7 +85,8 @@ function [y, u] = dmc(N, Nu, D, lambda, start, kend, set_value, set_time)
             ykm2 = y(k-2);
         end
         
-        y(k) = Ypp + heating_station_simulation(uktdm1 - Upp, uktdm2 - Upp, ykm1 - Ypp, ykm2 - Ypp, a, b);
+        y(k) = Ypp + heating_station_simulation(uktdm1 - Upp, ...
+            uktdm2 - Upp, ykm1 - Ypp, ykm2 - Ypp, a, b);
 
         % Compute error
         ek = y_zad(k) - y(k);

@@ -1,4 +1,5 @@
 clear all;
+
 D = 600;
 N = 200;
 Nu = 3;
@@ -11,20 +12,23 @@ set_value = 40;
 addpath('D:\SerialCommunication'); 
 initSerialControl COM7 
 
-Upp = 26;
-du = 19;
+working_point = 26;
+step_value = 35;
+
+% u limits
 du_min = -100;
 du_max = 100;
 
 u_min = 0;
 u_max = 100;
 
-name = "data\zad2_step_value=" + string(Upp + du) + ".csv";
+name = "data\zad2_step_value=" + string(step_value) + ".csv";
 raw_data = csvread(name);
 Ypp = raw_data(1);
+Upp = working_point;
 
 % Process approximation
-[xopt, td] = approximation(Upp + du, Upp, raw_data);
+[xopt, td] = approximation(step_value, Upp, raw_data);
 Kp = xopt(1);
 T1 = xopt(2);
 T2 = xopt(3);
@@ -36,19 +40,19 @@ s = step_response(0, 0, D, Kp, T1, T2, td);
 % Fill M matrix
 M = zeros(N, Nu);
 for i=1:Nu
-M(i:end,i)=s(1:N-i + 1);
+    M(i:end,i)=s(1:N-i + 1);
 end
 
 % Fill MP matrix
 MP = zeros(N, D-1);
 for i = 1:N
-for j = 1:D-1
-    if i+j <= D    
-        MP(i, j) = s(i+j) - s(j);
-    else
-        MP(i, j) = s(D) - s(j);
+    for j = 1:D-1
+        if i+j <= D    
+            MP(i, j) = s(i+j) - s(j);
+        else
+            MP(i, j) = s(D) - s(j);
+        end
     end
-end
 end
 
 % Regulator parameters
@@ -62,13 +66,6 @@ y = ones(kend, 1) * Ypp;
 y_simulation = ones(kend, 1) * Ypp;
 u = ones(kend, 1) * Upp;
 deltauk_p = zeros(D-1, 1);
-
-% Set trajectory
-step1_time = 30;
-step2_time = 350;
-
-step1_value = 37;
-step2_value = 37;
 
 
 y_zad(1:step1_time) = Ypp;
