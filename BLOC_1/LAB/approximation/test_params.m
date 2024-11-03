@@ -57,7 +57,6 @@ end
 
 y = y_normalized * (step_value - working_point) + heater_temp(1);
 
-fprintf("Td=%d\r\n", best_td);
 fprintf("K=%f\r\n", xopt(1));
 fprintf("T1=%f\r\n", xopt(2));
 fprintf("T2=%f\r\n", xopt(3));

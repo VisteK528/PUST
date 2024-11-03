@@ -4,40 +4,48 @@ clear all;
 addpath('D:\SerialCommunication'); 
 initSerialControl COM7 
 
-% File name to acquired data
-test_number = 4;
-name = "data/PID_object_" + string(test_number) + ".csv";
+% Selecting and creating a model
+working_point = 26;
+step_value = 35;
 
-% Process constants
-du_min = -100;
-du_max = 100;
+name = "data/zad2_step_value=" + string(step_value) + ".csv";
+raw_data = load(name);
 
-u_min = 0;
-u_max = 100;
+heater_temp = raw_data(1:500, 1);
+heater_temp_normalized = (heater_temp - ones(size(heater_temp))* ...
+    heater_temp(1))/(step_value - working_point);
 
-upp = 26;
-ypp = 33.18;
-
-% Model coefficients
-[xopt, td] = approximation(Upp + du, Upp, raw_data);
-Kp = xopt(1);
+[xopt, td] = approximation(step_value, working_point, raw_data);
+K = xopt(1);
 T1 = xopt(2);
 T2 = xopt(3);
 
 [a, b] = calculate_coefficients(T1, T2, K);
 
+% File name to acquired data
+test_number = 4;
+name = "data/PID_object_" + string(test_number) + ".csv";
+
+
+% Process constants
+du_min = -20;
+du_max = 20;
+
+u_min = 0;
+u_max = 100;
+
+Upp = working_point;
+Ypp = heater_temp(1);
+
 % Digital PID parameters
-% Kk - critical gain
-% Tk - critical period
-% Tp - sampling period
-Tp = 1;
+Tp = 1;         % sampling period
+Kp = 69.4;      % gain (using in tuning Ziegler-Nichols method)
+Kk = 30;        % critical gain
+Tk = 80;        % critical period
 
-Kk = 30;
-Tk = 80;
+[r2, r1, r0] = discrete_pid_parameters_ziegler_nichols(Kk, Tk, Tp);
 
-[r2, r1, r0] = discrete_pid_parameters(Kk, Tk, Tp);
-
-% [r2, r1, r0] = discrete_pid_parameters_tuning(Kp, inf, 0, Tp);
+% [r2, r1, r0] = discrete_pid_parameters(Kp, inf, 0, Tp);
 
 
 % General settings
@@ -45,9 +53,9 @@ iterations = 600;
 kstart = 12;
 
 
-u = ones(1, iterations) * upp;
-y = ones(1, iterations) * ypp;
-y_simulation = ones(1, iterations) * ypp;
+u = ones(1, iterations) * Upp;
+y = ones(1, iterations) * Ypp;
+y_simulation = ones(1, iterations) * Ypp;
 e = zeros(1, iterations);
 
 % Set trajectory
@@ -58,7 +66,7 @@ step1_value = 42;
 step2_value = 37;
 
 
-yzad(1:step1_time) = ypp;
+yzad(1:step1_time) = Ypp;
 yzad(step1_time:iterations) = step1_value;
 yzad(step2_time:end) = step2_value;
 
@@ -78,7 +86,8 @@ buffer_index = 1;
 figure;
 hold on;
 h_y = stairs(1:kstart, y(1:kstart), 'DisplayName', 'y');
-h_y_sim = stairs(1:kstart, y_simulation(1:kstart), 'DisplayName', 'y\_simulation');
+h_y_sim = stairs(1:kstart, y_simulation(1:kstart), 'DisplayName', ...
+    'y\_simulation');
 h_y_zad = stairs(1:kstart, yzad(1:kstart), 'DisplayName', 'y\_zad');
 hold off;
 
@@ -104,31 +113,37 @@ grid on;
 % Main loop
 for k=kstart:iterations
     if(k - td - 1 < 1)
-        uktdm1 = upp;
+        uktdm1 = Upp;
     else
         uktdm1 = u(k - td - 1);
     end
     
     if(k - td - 2 < 1)
-        uktdm2 = upp;
+        uktdm2 = Upp;
     else
         uktdm2 = u(k - td - 2);
     end
     
     if(k - 1 < 1)
-        ykm1 = ypp;
+        ykm1 = Ypp;
     else
         ykm1 = y(k-1);
     end
     
     if(k - 2 < 1)
-        ykm2 = ypp;
+        ykm2 = Ypp;
     else
         ykm2 = y(k-2);
     end
 
     y(k) = readMeasurements(1);
-    y_simulation(k) = ypp + heating_station_simulation(uktdm1 - upp, uktdm2 - upp, ykm1 - ypp, ykm2 - ypp, a, b);
+    y_normalized = heating_station_simulation( ...
+        (uktdm1 - Upp) / (step_value - working_point), ...
+        (uktdm2 - Upp) / (step_value - working_point), ...
+        (ykm1 - Ypp) / (step_value - working_point), ...
+        (ykm2 - Ypp) / (step_value - working_point), ...
+        a, b);
+    y_simulation(k) = y_normalized * (step_value - working_point) + Ypp;
     
     % Compute error
     e(k) = yzad(k) - y(k);
@@ -154,6 +169,7 @@ for k=kstart:iterations
         u(k) = u_max;
     end
 
+    % Control the physical object
     sendControls([1, 5], [50, u(k)]);
 
     % Add data to buffer
@@ -181,18 +197,3 @@ fclose(file_id);
 sendControls([1, 5], [50, 26]);
 
 fprintf("Error sum: %02f \r\n", e_sum);
-
-% % Print plots
-% len = length(y);
-% 
-% figure;
-% stairs(1:len, y);
-% hold on;
-% stairs(1:len, yzad, '--');
-% ylabel("y, yzad")
-% xlabel("k")
-% 
-% figure;
-% stairs(1:len, u);
-% ylabel("u")
-% xlabel("k")
