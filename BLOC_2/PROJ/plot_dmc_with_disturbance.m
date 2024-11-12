@@ -1,4 +1,3 @@
-
 Upp = 0;
 Ypp = 0;
 start = 20;
@@ -10,8 +9,6 @@ lambda = 1;
 Dz = 50;
 u_set_time = 40;
 u_set_value = 1;
-
-
 
 %% Disturbance
 consider_distrubance = true;
