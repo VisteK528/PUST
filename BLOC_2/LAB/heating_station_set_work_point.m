@@ -2,7 +2,8 @@
 
 Upp = 26;
 FanPower = 50;
-Z = 0;d
+Z = 0;
+kstart = 1;
 
 %% Communication with heating station setup
 addpath('D:\SerialCommunication');
@@ -26,7 +27,6 @@ grid on;
 
 k = 1;
 while(1)
-
     %% obtaining measurements
     measurements1 = readMeasurements(1); % T1 temperature
     measurements5 = readMeasurements(5); % T5 ambient temperature
@@ -36,16 +36,12 @@ while(1)
     fprintf('Heater temp: %.2f *C\tEnvironment temp: %.2f *C\n', measurements1, measurements5);
 
     %% sending new values of control signals
-    sendControls([1, 5], [FanPower, Upp]);
-
-    % TODO - send control to G1 and disturbance Z = 0 using
-    % sendControlToG1AndDisturbance()
-
-    %sendControlsToG1AndDisturbance()
+    sendControls(1,FanPower);
+    sendControlsToG1AndDisturbance(Upp, 0);
 
     % Update plots
-    set(h_y, 'XData', 1:k, 'YData', u(1:k));
-    set(h_environment, 'XData', 1:k, 'YData', y(1:k));
+    set(h_y, 'XData', 1:k, 'YData', y(1:k));
+    set(h_environment, 'XData', 1:k, 'YData', environment(1:k));
     drawnow;
     k = k + 1;
 
