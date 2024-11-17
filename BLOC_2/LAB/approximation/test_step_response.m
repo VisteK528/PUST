@@ -1,9 +1,11 @@
 clear;
+
 D = 400;
 working_point = 0;
-step_value = 10;
+step_value = 20;
 
-name = "../data/zad2_disturbance2_step=" + string(step_value) + ".csv";
+name = "data/zad2_disturbance2_step=" + string(step_value) + ".csv";
+% name = "../data/l2_step_value=45.csv";
 raw_data = load(name);
 
 % Process approximation
@@ -11,8 +13,6 @@ raw_data = load(name);
 K = xopt(1);
 T1 = xopt(2);
 T2 = xopt(3);
-
-[a, b] = calculate_coefficients(T1, T2, K);
 
 heater_temp = raw_data(:, 1);
 heater_temp_normalized = (heater_temp - ones(size(heater_temp))* ...

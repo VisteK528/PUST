@@ -1,13 +1,13 @@
 function [best_params, best_td] = approximation(step_value, ...
     working_point, raw_data)
 
-    disturbance = raw_data(:, 1);
+    output = raw_data(:, 1);
     K = 50;
     T1 = 2;
     T2 = 3;
     
-    disturbance = (disturbance - ones(size(disturbance))* ...
-        disturbance(1))/(step_value - working_point);
+    output = (output - ones(size(output))* ...
+        output(1))/(step_value - working_point);
 
     best_error = inf;
     best_params = [];
@@ -18,12 +18,12 @@ function [best_params, best_td] = approximation(step_value, ...
         bottom_constraint = [0.1 1.2 1];
     
         xopt = fmincon(@(x_pocz) approx_goal_func(td, 0, 1, ...
-            disturbance, x_pocz(1), x_pocz(2), x_pocz(3)), ...
+            output, x_pocz(1), x_pocz(2), x_pocz(3)), ...
             x_pocz, [], [], [], [], ...
             bottom_constraint, upper_constraint);
     
         error = approx_goal_func(td, 0, 1, ...
-            disturbance, xopt(1), xopt(2), xopt(3));
+            output, xopt(1), xopt(2), xopt(3));
     
         if(error <= best_error)
             best_error = error;
