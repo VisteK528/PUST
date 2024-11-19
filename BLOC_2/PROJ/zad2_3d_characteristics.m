@@ -73,9 +73,17 @@ end
 % Create a 3D surface plot
 figure;
 surf(U1, U2, y_steady);
-xlabel('$u_1$', 'Interpreter', 'latex', 'fontsize', 14); % x-axis for u_jumps
-ylabel('$u_2$', 'Interpreter', 'latex', 'fontsize', 14); % y-axis for u_jumps
-zlabel('$y_{steady}$', 'Interpreter', 'latex', 'fontsize', 14); % z-axis for y_steady
-title('3D Surface Plot of Steady-State Output $y_{steady}$', 'Interpreter', 'latex');
+xlabel('$u$', 'Interpreter', 'latex', 'fontsize', 14); % x-axis for u_jumps
+ylabel('$z$', 'Interpreter', 'latex', 'fontsize', 14); % y-axis for u_jumps
+zlabel('$y$', 'Interpreter', 'latex', 'fontsize', 14); % z-axis for y_steady
 colorbar; % Add color bar to show the color scale
 grid on;
+
+% Set figure size and position
+x0 = 10;
+y0 = 10;
+width = 900;
+height = 720;
+set(gcf, 'position', [x0, y0, width, height]);
+name = "images/zad_3d_static_characteristic.png";
+exportgraphics(gcf, name, 'Resolution', 400);
