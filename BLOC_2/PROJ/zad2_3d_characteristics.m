@@ -67,14 +67,17 @@ for i=1:u_jump_points
     end
 end
 
+K_stat_u = y_steady(end, 1) / u_jumps(end);
+K_stat_z = y_steady(1, end) / u_jumps(end);
+
 % Create a mesh grid for u_jumps to plot y_steady in 3D
 [U1, U2] = meshgrid(u_jumps, u_jumps);
 
 % Create a 3D surface plot
 figure;
 surf(U1, U2, y_steady);
-xlabel('$u$', 'Interpreter', 'latex', 'fontsize', 14); % x-axis for u_jumps
-ylabel('$z$', 'Interpreter', 'latex', 'fontsize', 14); % y-axis for u_jumps
+xlabel('$z$', 'Interpreter', 'latex', 'fontsize', 14); % x-axis for u_jumps
+ylabel('$u$', 'Interpreter', 'latex', 'fontsize', 14); % y-axis for u_jumps
 zlabel('$y$', 'Interpreter', 'latex', 'fontsize', 14); % z-axis for y_steady
 colorbar; % Add color bar to show the color scale
 grid on;
