@@ -11,11 +11,11 @@ set_value = 45;
 set_time = 50;
 
 z_start = 300;
-z_step = 10;
+z_step = 30;
 z = zeros(kend, 1);
 z(z_start:kend) = z_step;
 
-consider_disturbance = true;
+consider_disturbance = false;
 
 [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     set_time, set_value, z, consider_disturbance);
@@ -29,7 +29,15 @@ figure;
 stairs(1:len, y);
 hold on;
 stairs(1:len, y_zad, '--');
+xline(z_start, 'r--');
+title("Wyjście procesu");
+xlabel("k");
+ylabel("Y / Y_{zad}");
 hold off;
 
 figure;
 stairs(u);
+xline(z_start, 'r--');
+title("Sygnał sterujący");
+xlabel("k");
+ylabel("u");

@@ -1,6 +1,7 @@
 function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     u_set_time, y_set_value, z, consider_disturbance)
 
+    %% Konfiguracja
     addpath("approximation\");
 
     % Ograniczenia sterowania
@@ -34,6 +35,7 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     % Tor zakłócenie - wyjście
     name2 = "data/zad2_disturbance2_step=" + string(step_value_z) + ".csv";
     raw_data2 = load(name2);
+    Yzpp = raw_data2(1);
 
     [xopt2, td2] = approximation(step_value_z, working_point_z, raw_data2);
     K2 = xopt2(1);
@@ -42,6 +44,7 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
 
     sz = step_response(0, 0, Dz+1, K2, T12, T22, td2);
     sz = sz(2:end);
+    [a2, b2] = calculate_coefficients(T12, T22, K2);
     
     %% Algorytm
 
@@ -90,6 +93,8 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     Ke = sum(K(1, :));
     
     % Variables initialization
+    y_u = ones(kend, 1) * Ypp;
+    y_z = ones(kend, 1) * Yzpp;
     y = ones(kend, 1) * Ypp;
     u = ones(kend, 1) * Upp;
     deltauk_p = zeros(D-1, 1);
@@ -101,9 +106,12 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     accumulated_error = 0;
     % Main loop
     for k=start:kend
-        % Generate process output TODO
-        y(k) = Ypp + heating_station_simulation(u(k-td1-1) - Upp, ...
-            u(k-td1-2) - Upp, y(k-1) - Ypp, y(k-2) - Ypp, a1, b1);
+        % Generate process output
+        y_u(k) = Ypp + heating_station_simulation(u(k-td1-1) - Upp, ...
+            u(k-td1-2) - Upp, y_u(k-1) - Ypp, y_u(k-2) - Ypp, a1, b1);
+        y_z(k) = Yzpp + heating_station_simulation(z(k-td2-1), ...
+            z(k-td2-2), y_z(k-1) - Yzpp, y_z(k-2) - Yzpp, a2, b2);
+        y(k) = y_u(k) + y_z(k) - Yzpp;
 
         % Compute error
         ek = y_zad(k) - y(k);
