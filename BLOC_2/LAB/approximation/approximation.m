@@ -2,6 +2,8 @@ function [best_params, best_td] = approximation(step_value, ...
     working_point, raw_data)
 
     output = raw_data(:, 1);
+
+    % Initial values of the searched transfer function
     K = 50;
     T1 = 2;
     T2 = 3;
@@ -12,13 +14,14 @@ function [best_params, best_td] = approximation(step_value, ...
     best_error = inf;
     best_params = [];
     best_td = 0;
+
     for td = 1:15
         x_pocz = [K, T1, T2];
         upper_constraint = [150 100 100];
         bottom_constraint = [0.1 1.2 1];
     
-        xopt = fmincon(@(x_pocz) approx_goal_func(td, 0, 1, ...
-            output, x_pocz(1), x_pocz(2), x_pocz(3)), ...
+        xopt = fmincon(@(x_init) approx_goal_func(td, 0, 1, ...
+            output, x_init(1), x_init(2), x_init(3)), ...
             x_pocz, [], [], [], [], ...
             bottom_constraint, upper_constraint);
     

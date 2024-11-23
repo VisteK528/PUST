@@ -1,23 +1,23 @@
-function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
-    u_set_time, y_set_value, z, consider_disturbance)
+function [y, u] = dmc_with_disturbance_heating_station(start, kend, ...
+    N, Nu, D, lambda, Dz, y_set_time, y_set_value, z, consider_disturbance)
 
-    %% Konfiguracja
+    %% Configuration
     addpath("approximation\");
 
-    % Ograniczenia sterowania
+    % Controls limits
     du_min = -100;
     du_max = 100;    
     u_min = 0;
     u_max = 100;
 
-    %% Odpowiedzi skokowe
+    %% Step responses
 
     working_point_u = 26;
     working_point_z = 0;
     step_value_u = 45;
     step_value_z = 20;
 
-    % Tor wejście - wyjście
+    % Input - output path
     name1 = "data/l2_step_value=" + string(step_value_u) + ".csv";
     raw_data1 = load(name1);
     Ypp = raw_data1(1);
@@ -32,7 +32,7 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     s = s(2:end);
     [a1, b1] = calculate_coefficients(T11, T21, K1);
 
-    % Tor zakłócenie - wyjście
+    % Disturbance - output path
     name2 = "data/zad2_disturbance2_step=" + string(step_value_z) + ".csv";
     raw_data2 = load(name2);
     Yzpp = raw_data2(1);
@@ -46,7 +46,7 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     sz = sz(2:end);
     [a2, b2] = calculate_coefficients(T12, T22, K2);
     
-    %% Algorytm
+    %% Algorithm
 
     % Fill M matrix
     M = zeros(N, Nu);
@@ -100,10 +100,11 @@ function [y, u] = dmcWithDisturbance(start, kend, N, Nu, D, lambda, Dz, ...
     deltauk_p = zeros(D-1, 1);
     deltaz_p = zeros(Dz, 1);
     
-    y_zad(1:u_set_time) = Ypp;
-    y_zad(u_set_time:kend) = y_set_value;
+    y_zad(1:y_set_time) = Ypp;
+    y_zad(y_set_time:kend) = y_set_value;
     
     accumulated_error = 0;
+
     % Main loop
     for k=start:kend
         % Generate process output

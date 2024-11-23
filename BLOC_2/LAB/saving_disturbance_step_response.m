@@ -33,7 +33,8 @@ sendControlsToG1AndDisturbance(Upp, step_value_1);
 
 for k=1:N
     measurements = readMeasurements([1 5]);
-    fprintf('Heater temp: %.2f *C\tEnvironment temp: %.2f *C\n', measurements(1), measurements(2));
+    fprintf('Heater temp: %.2f *C\tEnvironment temp: %.2f *C\n', ...
+        measurements(1), measurements(2));
     
     T1(k) = measurements(1);
     y(k) = T1(k);

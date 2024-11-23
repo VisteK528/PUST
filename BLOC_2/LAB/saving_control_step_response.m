@@ -17,13 +17,13 @@ buffer_size = 15;
 buffer = zeros(buffer_size, 2);
 buffer_index = 1;
 
-%% Make the jump TODO change to the sendControlToG1AndDisturbance()
+%% Make the jump
 sendControls([1, 5], [FanPower, step_value_1]);
-% sendControlToG1AndDisturbance
 
 for k=1:N
     measurements = readMeasurements([1 5]);
-    fprintf('Heater temp: %.2f *C\tEnvironment temp: %.2f *C\n', measurements(1), measurements(2));
+    fprintf('Heater temp: %.2f *C\tEnvironment temp: %.2f *C\n', ...
+        measurements(1), measurements(2));
     
     T1(k) = measurements(1);
     stairs(1:k, T1(1:k));
