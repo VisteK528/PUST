@@ -2,7 +2,8 @@ export_pictures = 1;
 
 % Wektor wartości wejściowych
 u = [5, 10, 20, 30];
-y = [36.61, 36.62, 38.68, 40.75]; 
+% y = [36.61, 36.62, 38.68, 40.75]; % dla zmierzonych
+y = [36.35, 36.53, 38.60, 40.59];
 
 % Tworzenie wykresu
 figure;
@@ -19,7 +20,7 @@ y0 = 60;
 width = 710;
 height = 400;
 set(gcf, 'position', [x0, y0, width, height]);
-file_name = "images/ex2_static_characteristics.pdf";
+file_name = "images/ex3_static_characteristics_approximated.pdf";
 
 if export_pictures
     exportgraphics(gcf, file_name, 'ContentType', 'vector');
