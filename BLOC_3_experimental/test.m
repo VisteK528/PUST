@@ -1,0 +1,1 @@
+[s, y] = step_response_lab(50);
