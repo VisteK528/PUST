@@ -1,0 +1,244 @@
+clear;
+
+%% Configuration
+addpath("approximation\");
+
+addpath('D:\SerialCommunication'); 
+initSerialControl COM4
+sendControls(1, 50);
+
+% Controls limits
+du_min = -100;
+du_max = 100;    
+u_min = 0;
+u_max = 100;
+
+start = 20;
+kend = 600;
+N = 50;
+Nu = 6;
+D = 400;
+Dz = 400;
+lambda = 0.01;
+y_set_value = 45;
+u_set_time = 20;
+consider_disturbance = true;
+
+z_time_step_1 = 250;
+z_time_step_2 = 425;
+z_step_1 = 30;
+z_step_2 = 10;
+
+z = zeros(kend, 1);
+z(z_time_step_1:z_time_step_2) = z_step_1;
+z(z_time_step_2:kend) = z_step_2;
+
+%% Step responses
+
+working_point_u = 26;
+working_point_z = 0;
+step_value_u = 45;
+step_value_z_approx = 20;
+
+% Input - output path
+name1 = "data/l2_step_value=" + string(step_value_u) + ".csv";
+raw_data1 = load(name1);
+Ypp = 34.1;
+Upp = working_point_u;
+
+[xopt1, td1] = approximation(step_value_u, working_point_u, raw_data1);
+K1 = xopt1(1);
+T11 = xopt1(2);
+T21 = xopt1(3);
+
+s = step_response(0, 0, D+1, K1, T11, T21, td1);
+s = s(2:end);
+[a1, b1] = calculate_coefficients(T11, T21, K1);
+
+% Disturbance - output path
+name2 = "data/zad2_disturbance2_step=" + string(step_value_z_approx) + ".csv";
+raw_data2 = load(name2);
+Yzpp = raw_data2(1);
+
+[xopt2, td2] = approximation(step_value_z_approx, working_point_z, raw_data2);
+K2 = xopt2(1);
+T12 = xopt2(2);
+T22 = xopt2(3);
+
+sz = step_response(0, 0, Dz+1, K2, T12, T22, td2);
+sz = sz(2:end);
+[a2, b2] = calculate_coefficients(T12, T22, K2);
+
+% Variables initialization
+y_u = ones(kend, 1) * Ypp;
+y_z = ones(kend, 1) * Yzpp;
+y = ones(kend, 1) * Ypp;
+u = ones(kend, 1) * Upp;
+deltauk_p = zeros(D-1, 1);
+deltaz_p = zeros(Dz, 1);
+
+y_zad(1:u_set_time) = Ypp;
+y_zad(u_set_time:kend) = y_set_value;
+
+%% Plots and saving to file
+% File name to acquired data
+test_number = 12;
+name = "data/DMC_object_" + string(test_number) + ".csv";
+
+% Preparing files
+file_id = fopen(name, 'a');
+fprintf(file_id, "u(k), y(k)\n");
+
+buffer_size = 15;
+buffer = zeros(buffer_size, 2);
+buffer_index = 1;
+
+% Make window with plots
+figure;
+hold on;
+h_y = stairs(1:start, y(1:start), 'DisplayName', 'y');
+h_y_zad = stairs(1:start, y_zad(1:start), 'DisplayName', 'y\_zad');
+hold off;
+
+title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
+xlabel("Iteracje [k]");
+ylabel("Wartości");
+legend;
+grid on;
+
+figure;
+hold on;
+h_u = stairs(1:start, u(1:start), 'DisplayName', 'u');
+hold off;
+
+title("Wykres sterowania i odpowiedzi stanowiska grzewczego");
+xlabel("Iteracje [k]");
+ylabel("Wartości");
+legend;
+grid on;
+
+%% Algorithm
+
+% Fill M matrix
+M = zeros(N, Nu);
+for i=1:Nu
+    M(i:end,i)=s(1:N-i + 1);
+end
+
+% Fill MP matrix
+MP = zeros(N, D-1);
+for i = 1:N
+    for j = 1:D-1
+        if i+j <= D    
+            MP(i, j) = s(i+j) - s(j);
+        else
+            MP(i, j) = s(D) - s(j);
+        end
+    end
+end
+
+% Fill MZP matrix
+MZP = zeros(N, Dz);
+for j = 1:Dz
+    for i=1:N
+        if j == 1
+            if i <= Dz
+                MZP(i, j) = sz(i);
+            else
+                MZP(i, j) = sz(Dz);
+            end
+        else
+             if i + j - 1 <= Dz
+                MZP(i, j) = sz(i+j-1) - sz(j - 1);
+            else
+                MZP(i, j) = sz(Dz) - sz(j - 1);
+             end
+        end
+    end
+end
+
+% Regulator parameters
+I = eye(Nu);
+K = ((M'*M+lambda*I)^(-1))*M';
+Ku = K(1,:)*MP;
+Ke = sum(K(1, :));
+
+accumulated_error = 0;
+
+% Main loop
+for k=start:kend
+    % Process output
+    y(k) = readMeasurements(1);
+
+    % Compute error
+    ek = y_zad(k) - y(k);
+    accumulated_error = accumulated_error + ek^2;
+
+    % Disturbance effect
+    z_part = 0;
+    for j=0:(Dz-1)
+        z_part = z_part + K(1, :)*MZP(:, j+1)*deltaz_p(1+j);
+    end
+
+    % Compute deltau variable for given control horizon
+    if consider_disturbance
+        deltauk = Ke*ek-Ku*deltauk_p - z_part;
+    else
+        deltauk = Ke*ek-Ku*deltauk_p;
+    end
+    
+    % Back deltau window
+    for n=D-1:-1:2
+        deltauk_p(n) = deltauk_p(n-1);
+    end
+
+    % Calculate deltaz window
+    for n=Dz:-1:2
+       deltaz_p(n) = deltaz_p(n-1);
+    end
+    
+    if(deltauk < du_min)
+        deltauk = du_min;
+    elseif(deltauk > du_max)
+        deltauk = du_max;
+    end
+
+    % Manipulate variable for time k
+    u(k) = u(k-1) + deltauk;
+
+    if(u(k) < u_min)
+        u(k) = u_min;
+    elseif(u(k) > u_max)
+        u(k) = u_max;
+    end
+
+    % Delta u for time k
+    deltauk_p(1) = u(k) - u(k-1);
+    deltaz_p(1) = z(k) - z(k-1);
+
+    % Send control command to the process
+    sendControlsToG1AndDisturbance(u(k), z(k));
+
+    % Add data to buffer
+    buffer(buffer_index, :) = [u(k), y(k)];
+    buffer_index = buffer_index + 1;
+
+    % Write data to file
+    if buffer_index > buffer_size
+        fprintf(file_id, '%f, %f\n', buffer');
+        buffer_index = 1;
+    end
+
+    % Update plots
+    set(h_u, 'XData', 1:k, 'YData', u(1:k));
+    set(h_y, 'XData', 1:k, 'YData', y(1:k));
+    set(h_y_zad, 'XData', 1:k, 'YData', y_zad(1:k));
+    drawnow;
+
+    waitForNewIteration();
+end
+
+fclose(file_id);
+sendControlsToG1AndDisturbance(Upp, 0);
+
+fprintf("Error: %f\r\n", accumulated_error);

@@ -1,3 +1,5 @@
 **/*.asv
 BLOC_2/SPRAW/build/
 BLOC_2/PROJ/images/
+**/images/
+**/Images/
