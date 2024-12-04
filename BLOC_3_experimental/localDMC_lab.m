@@ -12,12 +12,16 @@ classdef localDMC_lab
         Ku
         % Horizont
         D
+        Upp
+        U
     end
 
     methods
-        function obj = localDMC_lab(N, Nu, D, lambda, Upp, yzad, kend)  
+        function obj = localDMC_lab(N, Nu, D, lambda, Upp, U, yzad, kend)  
             obj.D = D;
             obj.yzad = yzad;
+            obj.Upp = Upp;
+            obj.U = U;
         
             %Yodp = stepResponse(0, 0, Upp, 50);
             %Ypp = Yodp(50);
@@ -25,7 +29,7 @@ classdef localDMC_lab
             % Step response
             %s = stepResponseNormalized(Upp, Ypp, 0.01, D+1);
             %s = s(2:end);
-            [s, Ypp] = step_response_lab(D);
+            [s, Ypp] = step_response_lab(D, Upp, U);
             
             % Fill M matrix
             M = zeros(N, Nu);

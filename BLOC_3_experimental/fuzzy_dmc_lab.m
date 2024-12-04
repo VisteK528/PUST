@@ -41,18 +41,19 @@ yzad(step4_time:kend) = step4_value;
 
 %% Odpowiedzi skokowe
 % TODO - working_points
-working_points = [50];
+Upps = [26, 50, 65];
+Us = [40, 55, 75];
 
 num_regulators = length(working_points);
 regulators = [];
 
 for i=1:num_regulators
-    regulators = [regulators localDMC_lab(N, Nu, D, lambda, working_points(i), yzad, kend)];
+    regulators = [regulators localDMC_lab(N, Nu, D, lambda, Upps(i), Us(i), yzad, kend)];
 end
 %% Pliki
 % File name to acquired data
 test_number = 1;
-name = "data/DMC_object_" + string(test_number) + ".csv";
+name = "data/fuzzy_DMC_object_" + string(test_number) + ".csv";
 
 % Preparing files
 file_id = fopen(name, 'a');

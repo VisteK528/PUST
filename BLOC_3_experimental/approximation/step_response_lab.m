@@ -1,13 +1,9 @@
-function [s, y_out] = step_response_lab(D)
-    working_point_u = 55;
-    step_value_u = 26;
-    
-    name1 = "data/dmc_u=" + string(working_point_u) + ".csv";
+function [s, y_out] = step_response_lab(D, Upp, U)    
+    name1 = "data/dmc_u=" + string(Upp) + ".csv";
     raw_data1 = load(name1);
     Ypp = raw_data1(1);
-    Upp = working_point_u;
     
-    [xopt1, td1] = approximation(step_value_u, working_point_u, raw_data1);
+    [xopt1, td1] = approximation(U, Upp, raw_data1);
     K1 = xopt1(1);
     T11 = xopt1(2);
     T21 = xopt1(3);
