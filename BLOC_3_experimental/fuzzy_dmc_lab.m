@@ -18,7 +18,7 @@ Nu = 1;
 lambda = 1;
 start = 10;
 kend = 800;
-working_points = [-0.3 -0.1 0.0 0.2 0.5];
+working_points = [30 40 70];
 
 step1_time = 10;
 step2_time = 200;
@@ -40,8 +40,6 @@ yzad(step4_time:kend) = step4_value;
 %y_simulation = ones(kend, 1) * Ypp;
 
 %% Odpowiedzi skokowe
-working_points = [50];
-
 num_regulators = length(working_points);
 regulators = [];
 

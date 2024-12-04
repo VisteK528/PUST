@@ -8,34 +8,29 @@ sendControls(1, 50);
 
 % General settings
 start = 10;
-kend = 800;
-working_points = [-0.3 0.2];
-Kp = [0.1 2];
-Ti = [1 15];
-Td = [1 2];
-u = zeros(1, kend);
-y = zeros(1, kend);
-e = zeros(1, kend);
-up = zeros(1, kend);
-ui = zeros(1, kend);
-ud = zeros(1, kend);
+kend = 1000;
 
-step1_time = 10;
-step2_time = 200;
-step3_time = 400;
-step4_time = 600;
+% PID parameters
+working_points = [30 40 70];
+Kp = [96 18.6 55];
+Ti = [13 25 16];
+Td = [3.25 6.25 4];
 
 % Set trajectory
-step1_value = 0.02;
-step2_value = 0.07;
-step3_value = -0.05;
-step4_value = -0.2;
+Ypp = 35;
+
+step1_value = 40;
+step2_value = 50;
+step3_value = 60;
+
+step1_time = 50;
+step2_time = 200;
+step3_time = 400;
 
 yzad(1:step1_time) = Ypp;
-yzad(step1_time:step2_time) = step1_value;
-yzad(step2_time:step3_time) = step2_value;
-yzad(step3_time:step4_time) = step3_value;
-yzad(step4_time:kend) = step4_value;
+yzad(step1_time:step2_time) = Ypp + 5;
+yzad(step2_time:step3_time) = Ypp + 15;
+yzad(step3_time:kend) = Ypp;
 
 % Validation
 u_min = -1;
@@ -77,6 +72,13 @@ legend;
 grid on;
 
 %% Algorytm
+u = zeros(1, kend);
+y = zeros(1, kend);
+e = zeros(1, kend);
+up = zeros(1, kend);
+ui = zeros(1, kend);
+ud = zeros(1, kend);
+
 for k=start:kend
     y(k) = readMeasurements(1);
 
