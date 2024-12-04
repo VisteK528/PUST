@@ -40,6 +40,7 @@ yzad(step4_time:kend) = step4_value;
 %y_simulation = ones(kend, 1) * Ypp;
 
 %% Odpowiedzi skokowe
+% TODO - working_points
 working_points = [50];
 
 num_regulators = length(working_points);
