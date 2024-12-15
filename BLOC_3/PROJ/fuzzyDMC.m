@@ -11,7 +11,8 @@ function [y, u, e_sum] = fuzzyDMC(N, Nu, D, lambda, working_points, yzad)
 
     % Initialize local regulators
     for i=1:num_regulators
-        regulators = [regulators localDMC(N, Nu, D, lambda, working_points(i), yzad, kend)];
+        regulators = [regulators localDMC(N(i), Nu(i), D, lambda(i), ...
+            working_points(i), yzad, kend)];
     end
 
     % Main loop

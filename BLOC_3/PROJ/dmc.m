@@ -1,11 +1,7 @@
 function [y, u, e_sum] = dmc(N, Nu, D, lambda, Upp, step1_value, ...
     step2_value, step3_value, step4_value)
-    du_min = -2;
-    du_max = 2;
-    
     u_min = -1;
     u_max = 1;
-
     start = 10;
     kend = 800;
 
@@ -21,8 +17,8 @@ function [y, u, e_sum] = dmc(N, Nu, D, lambda, Upp, step1_value, ...
     yzad(step3_time:step4_time) = step3_value;
     yzad(step4_time:kend) = step4_value;
 
-    Yodp = stepResponse(0, 0, Upp, 50);
-    Ypp = Yodp(50);
+    Yodp = stepResponse(0, 0, Upp, D);
+    Ypp = Yodp(D);
 
     % Step response
     s = stepResponseNormalized(Upp, Ypp, 0.01, D+1);
@@ -94,13 +90,7 @@ function [y, u, e_sum] = dmc(N, Nu, D, lambda, Upp, step1_value, ...
         % Back deltau window
         for n=D-1:-1:2
             deltauk_p(n) = deltauk_p(n-1);
-        end
-        
-        if(deltauk < du_min)
-            deltauk = du_min;
-        elseif(deltauk > du_max)
-            deltauk = du_max;
-        end
+        end       
 
         % Manipulate variable for time k
         u(k) = u(k-1) + deltauk;

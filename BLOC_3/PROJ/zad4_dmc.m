@@ -6,9 +6,10 @@ set(0, 'DefaultStairLineWidth',1);
 Ypp = 0;
 
 D = 50;
-N = 20;
+N = 50;
 Nu = 1;
 lambda = 1;
+
 start = 10;
 kend = 800;
 
@@ -40,28 +41,16 @@ stairs(1:len, y);
 hold on;
 stairs(1:len, yzad, '--');
 
-x0=10;
-y0=10;
-width=1280;
-height=720;
-set(gcf,'position',[x0,y0,width,height]);
-grid(gca,'minor');
-title('');
-
-legend("$y(k)$", "$y_{zad}(k)$", 'fontsize', 12, 'Interpreter','latex');
+% legend("$y(k)$", "$y_{zad}(k)$", 'fontsize', 12, 'Interpreter','latex');
 xlabel('$k$', 'fontsize', 14, 'Interpreter','latex');
 ylabel('$y$', 'fontsize', 14, 'Interpreter','latex');
+
+%exportgraphics(gcf, 'images/proj_lin_dmc_y.pdf', 'ContentType', 'vector');
 
 figure;
 stairs(1:len, u);
 
-x0=10;
-y0=10;
-width=1280;
-height=720;
-set(gcf,'position',[x0,y0,width,height]);
-grid(gca,'minor');
-title('');
-
 xlabel('$k$', 'fontsize', 14, 'Interpreter','latex');
 ylabel('$u$', 'fontsize', 14, 'Interpreter','latex');
+
+%exportgraphics(gcf, 'images/proj_lin_dmc_u.pdf', 'ContentType', 'vector');

@@ -8,7 +8,7 @@ function y = stepResponse(Upp, Ypp, du, n)
       else
           Ykm1 = Ypp;
       end
-      
+ 
       if i >= 3
           Ykm2 = y(i-2);
       else
